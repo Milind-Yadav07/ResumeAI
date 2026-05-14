@@ -16,6 +16,9 @@ A modern, AI-enhanced resume builder that helps job seekers create ATS-optimized
 - **PDF Export** - Download your resume as a professional PDF document
 - **ATS-Optimized** - Built with Applicant Tracking System compatibility in mind
 
+### 🌐 <a href="https://resumeai-ats.netlify.app/">Live Demo</a>
+<br>
+
 ### 🔍 ATS Checker
 - **AI-Powered Analysis** - Upload your resume and job description for intelligent matching
 - **Match Percentage** - Get a compatibility score with visual circular progress indicator
