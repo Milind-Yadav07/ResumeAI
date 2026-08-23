@@ -137,7 +137,7 @@ Contributions are welcome! Please feel free to open issues or submit pull reques
 <div align="center">
   <p>Designed & Developed with ❤️ by <b>Milind Yadav</b></p>
   <p>
-    <a href="https://linkedin.com">LinkedIn</a>
+    <a href="https://linkedin.com/in/milind-yadav-a89157326">LinkedIn</a>
   </p>
   <sub>⭐ If you find this project impressive, please consider giving it a star on GitHub! ⭐</sub>
 </div>
