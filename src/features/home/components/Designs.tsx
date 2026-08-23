@@ -36,9 +36,6 @@ const MarqueeRow: React.FC<MarqueeRowProps> = ({ items, rowRef }) => {
             {duplicatedItems.map((item, index) => (
                 <div className="group relative w-[240px] h-[340px] mx-[15px] rounded-[15px] overflow-hidden cursor-pointer bg-slate-100 shrink-0 transition-transform duration-400 ease-[cubic-bezier(0.2,0.8,0.2,1)] shadow-lg hover:scale-[1.08] hover:z-50 hover:shadow-2xl" key={`${item.id}-${index}`}>
                     <img src={item.img} alt={item.title} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 ease" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400 ease flex flex-col justify-end p-8">
-                        <h3 className="text-white text-2xl font-bold translate-y-5 group-hover:translate-y-0 transition-transform duration-400 ease-[cubic-bezier(0.2,0.8,0.2,1)]">{item.title}</h3>
-                    </div>
                     <div className="absolute top-0 left-[-100%] w-1/2 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-[25deg] group-hover:animate-designs-shine"></div>
                 </div>
             ))}
