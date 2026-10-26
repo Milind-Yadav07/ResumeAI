@@ -39,19 +39,19 @@ Whether you're crafting a new resume from scratch or optimizing an existing PDF,
 ## 🛠️ Tech Stack
 
 ### **Frontend**
-* **Framework:** React + TypeScript + Vite
-* **Styling & UI:** Tailwind CSS + Lucide Icons + Lottie Animations
-* **State & Motion:** Framer Motion + GSAP + React Router
-* **PDF Processing:** `@react-pdf/renderer` + `pdfjs-dist`
+* **Framework:** React, TypeScript, Vite
+* **Styling & UI:** Tailwind CSS, Lucide Icons, Lottie Animations
+* **State & Motion:** Framer Motion, React Router
+* **PDF Processing:** `@react-pdf/renderer`, `pdfjs-dist`
 * **Notifications:** React Hot Toast
 
 ### **Backend**
-* **Runtime:** Node.js + Express.js (ESM / TypeScript)
-* **Database & ORM:** MongoDB Atlas + Mongoose ORM
+* **Runtime:** Node.js, Express.js (ESM / TypeScript)
+* **Database & ORM:** MongoDB Atlas, Mongoose ORM
 * **Artificial Intelligence:** Gemini API
 * **Security & Middleware:** JWT, BcryptJS, Helmet, Express Rate Limit, Express Mongo Sanitize, Zod
-* **Storage & Utilities:** Cloudinary API + Winston Logger + Morgan
-* **Testing & Quality:** Vitest + Coverage + ESLint
+* **Storage & Utilities:** Cloudinary API, Winston Logger, Morgan
+* **Testing & Quality:** Vitest, Coverage, ESLint
 
 
 ---
@@ -62,9 +62,9 @@ Follow these instructions to get **ResumeAI** running locally.
 
 ### 📋 Prerequisites
 * **Node.js**
-* **npm** or **yarn**
-* **MongoDB** (Local instance or MongoDB Atlas Connection String)
-* **Google Gemini API Key**
+* **npm**
+* **MongoDB**
+* **Google Gemini API**
 
 ---
 
