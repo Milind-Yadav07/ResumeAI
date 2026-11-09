@@ -16,21 +16,4 @@ export default defineConfig({
       '@store': path.resolve(__dirname, './src/store'),
     },
   },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('@react-pdf') || id.includes('pdfjs-dist')) {
-              return 'pdf-vendor';
-            }
-            if (id.includes('gsap') || id.includes('framer-motion') || id.includes('@lottiefiles')) {
-              return 'animation-vendor';
-            }
-            return 'vendor';
-          }
-        }
-      }
-    }
-  }
 })
