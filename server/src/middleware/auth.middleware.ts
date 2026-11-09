@@ -36,10 +36,11 @@ export const protect = asyncHandler(async (req: Request, res: Response, next: Ne
       if (decoded.tokenType === 'refresh') {
         // Issue a new access token
         const newAccessToken = authService.generateAccessToken(decoded.userId);
+        const isProduction = env.NODE_ENV === 'production';
         res.cookie('accessToken', newAccessToken, {
           httpOnly: true,
-          secure: env.NODE_ENV === 'production',
-          sameSite: 'strict',
+          secure: isProduction,
+          sameSite: isProduction ? 'none' : 'strict',
           maxAge: 15 * 60 * 1000 // 15 mins
         });
       } else {
@@ -101,10 +102,11 @@ export const optionalProtect = asyncHandler(async (req: Request, res: Response, 
       if (decoded.tokenType === 'refresh') {
         // Issue a new access token
         const newAccessToken = authService.generateAccessToken(decoded.userId);
+        const isProduction = env.NODE_ENV === 'production';
         res.cookie('accessToken', newAccessToken, {
           httpOnly: true,
-          secure: env.NODE_ENV === 'production',
-          sameSite: 'strict',
+          secure: isProduction,
+          sameSite: isProduction ? 'none' : 'strict',
           maxAge: 15 * 60 * 1000 // 15 mins
         });
       } else {

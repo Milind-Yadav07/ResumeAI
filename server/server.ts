@@ -34,6 +34,9 @@ await Promise.all([
 const app = express();
 const PORT = env.PORT;
 
+// Trust Render / reverse proxy for secure cookies and rate limiting
+app.set('trust proxy', 1);
+
 // Serve static uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

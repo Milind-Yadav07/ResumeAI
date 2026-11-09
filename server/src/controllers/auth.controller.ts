@@ -31,17 +31,20 @@ export const signup = asyncHandler(async (req: Request, res: Response) => {
   const accessToken = authService.generateAccessToken(newUser._id.toString());
   const refreshToken = authService.generateRefreshToken(newUser._id.toString());
 
+  const isProduction = env.NODE_ENV === 'production';
+  const cookieSameSite = isProduction ? 'none' : 'strict';
+
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
-    secure: env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: isProduction,
+    sameSite: cookieSameSite,
     maxAge: 15 * 60 * 1000 // 15 mins
   });
 
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    secure: env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: isProduction,
+    sameSite: cookieSameSite,
     maxAge: COOKIE_MAX_AGE_MS
   });
 
@@ -75,17 +78,20 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   const accessToken = authService.generateAccessToken(user._id.toString());
   const refreshToken = authService.generateRefreshToken(user._id.toString());
 
+  const isProduction = env.NODE_ENV === 'production';
+  const cookieSameSite = isProduction ? 'none' : 'strict';
+
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
-    secure: env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: isProduction,
+    sameSite: cookieSameSite,
     maxAge: 15 * 60 * 1000 // 15 mins
   });
 
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    secure: env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: isProduction,
+    sameSite: cookieSameSite,
     maxAge: COOKIE_MAX_AGE_MS
   });
 
@@ -112,15 +118,18 @@ export const getMe = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const logout = asyncHandler(async (req: Request, res: Response) => {
+  const isProduction = env.NODE_ENV === 'production';
+  const cookieSameSite = isProduction ? 'none' : 'strict';
+
   res.clearCookie('accessToken', {
     httpOnly: true,
-    secure: env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: isProduction,
+    sameSite: cookieSameSite,
   });
   res.clearCookie('refreshToken', {
     httpOnly: true,
-    secure: env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: isProduction,
+    sameSite: cookieSameSite,
   });
   new ApiResponse(200, null, 'Logged out successfully.').send(res);
 });
