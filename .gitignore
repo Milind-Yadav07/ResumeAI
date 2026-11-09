@@ -32,3 +32,4 @@ build/
 # Local uploads and build directories
 server/uploads/
 server/dist/
+.firebase/
