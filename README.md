@@ -11,8 +11,11 @@
   ![ResumeAI App Showcase](public/ProjectReadmeImage.png)
 
 </div>
+<br>
 
----
+## 🔗 [Visit the Live Project ✨](https://resumeai-b0b13.web.app/)
+
+<br>
 
 ## 📌 Overview
 
