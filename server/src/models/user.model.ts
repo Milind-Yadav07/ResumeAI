@@ -4,6 +4,8 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password?: string;
+  googleId?: string;
+  authProvider?: 'local' | 'google';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,9 +26,23 @@ const userSchema = new Schema<IUser>({
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
+    required: [
+      function (this: IUser) {
+        return !this.googleId;
+      },
+      'Password is required',
+    ],
     minlength: [6, 'Password must be at least 6 characters long'],
     select: false,
+  },
+  googleId: {
+    type: String,
+    sparse: true,
+  },
+  authProvider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local',
   },
 }, {
   timestamps: true,

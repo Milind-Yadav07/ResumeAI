@@ -70,7 +70,11 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(400, 'Invalid email or password.');
   }
 
-  const isMatch = await authService.comparePassword(password, user.password!);
+  if (!user.password) {
+    throw new ApiError(400, 'This account uses Google Sign-In. Please click "Continue with Google".');
+  }
+
+  const isMatch = await authService.comparePassword(password, user.password);
   if (!isMatch) {
     throw new ApiError(400, 'Invalid email or password.');
   }
@@ -102,6 +106,52 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
       email: user.email,
     }
   }, 'Logged in successfully.').send(res);
+});
+
+export const googleAuth = asyncHandler(async (req: Request, res: Response) => {
+  const { token } = req.body;
+
+  if (!token) {
+    throw new ApiError(400, 'Google token is required.');
+  }
+
+  let googlePayload: authService.GoogleUserPayload;
+  try {
+    googlePayload = await authService.verifyGoogleToken(token);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Google authentication failed.';
+    throw new ApiError(401, message);
+  }
+
+  const user = await authService.findOrCreateGoogleUser(googlePayload);
+
+  const accessToken = authService.generateAccessToken(user._id.toString());
+  const refreshToken = authService.generateRefreshToken(user._id.toString());
+
+  const isProduction = env.NODE_ENV === 'production';
+  const cookieSameSite = isProduction ? 'none' : 'strict';
+
+  res.cookie('accessToken', accessToken, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: cookieSameSite,
+    maxAge: 15 * 60 * 1000 // 15 mins
+  });
+
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: cookieSameSite,
+    maxAge: COOKIE_MAX_AGE_MS
+  });
+
+  new ApiResponse(200, {
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+    }
+  }, 'Authenticated with Google successfully.').send(res);
 });
 
 export const getMe = asyncHandler(async (req: Request, res: Response) => {

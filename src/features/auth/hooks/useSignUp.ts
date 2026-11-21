@@ -54,6 +54,7 @@ export const useSignUp = () => {
         setShowConfirmPassword,
         isLoading,
         error,
+        setError,
         handleSubmit,
         navigate
     };

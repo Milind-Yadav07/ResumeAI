@@ -14,9 +14,11 @@ dist-ssr
 
 # Environment variables
 .env
+.env.*
 .env.production
 client/.env
 server/.env
+server/.env.*
 build/
 
 # Editor directories and files

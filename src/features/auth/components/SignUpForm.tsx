@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { GoogleAuthButton } from './GoogleAuthButton';
 
 interface SignUpFormProps {
     name: string;
@@ -17,6 +18,7 @@ interface SignUpFormProps {
     setShowConfirmPassword: (val: boolean) => void;
     isLoading: boolean;
     error: string | null;
+    setError?: (val: string) => void;
     onSubmit: (e: React.FormEvent) => void;
 }
 
@@ -35,6 +37,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
     setShowConfirmPassword,
     isLoading,
     error,
+    setError,
     onSubmit
 }) => {
     return (
@@ -148,6 +151,8 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
                     </>
                 )}
             </button>
+
+            <GoogleAuthButton disabled={isLoading} onError={(msg) => setError?.(msg)} />
         </motion.form>
     );
 };

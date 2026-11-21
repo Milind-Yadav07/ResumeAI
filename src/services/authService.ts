@@ -47,6 +47,27 @@ export const signupUser = async (name: string, email: string, password: string):
   }
 };
 
+export const googleAuthUser = async (token: string): Promise<UserResponse> => {
+  try {
+    const response = await fetch(`${BASE_URL}/auth/google`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ token }),
+    });
+
+    const resData = await response.json();
+    if (!response.ok) {
+      throw new Error(resData.message || 'Google sign-in failed');
+    }
+    return resData.data.user;
+  } catch (error: unknown) {
+    throw new Error(getErrorMessage(error));
+  }
+};
+
 export const logoutUser = async (): Promise<void> => {
   try {
     const response = await fetch(`${BASE_URL}/auth/logout`, {

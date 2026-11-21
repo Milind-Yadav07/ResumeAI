@@ -46,6 +46,7 @@ export const useLogin = () => {
         setRememberMe,
         isLoading,
         error,
+        setError,
         handleSubmit,
         navigate
     };

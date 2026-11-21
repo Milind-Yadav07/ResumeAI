@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, Check } from 'lucide-react';
+import { GoogleAuthButton } from './GoogleAuthButton';
 
 interface LoginFormProps {
     email: string;
@@ -13,6 +14,7 @@ interface LoginFormProps {
     setRememberMe: (val: boolean) => void;
     isLoading: boolean;
     error: string | null;
+    setError?: (val: string) => void;
     onSubmit: (e: React.FormEvent) => void;
 }
 
@@ -27,6 +29,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     setRememberMe,
     isLoading,
     error,
+    setError,
     onSubmit
 }) => {
     return (
@@ -123,6 +126,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                     </>
                 )}
             </button>
+
+            <GoogleAuthButton disabled={isLoading} onError={(msg) => setError?.(msg)} />
         </motion.form>
     );
 };

@@ -136,6 +136,109 @@ export const generateRefreshToken = (userId: string): string => {
   );
 };
 
+export interface GoogleUserPayload {
+  googleId: string;
+  email: string;
+  name: string;
+}
+
+/**
+ * Verify a Google OAuth 2.0 access token or ID token against Google's official endpoints
+ * and validate the audience (GOOGLE_CLIENT_ID).
+ */
+export const verifyGoogleToken = async (token: string): Promise<GoogleUserPayload> => {
+  // 1. Check if it's a JWT ID token (3 dot-separated segments) or an OAuth2 access token
+  const isJwtIdToken = token.split('.').length === 3;
+
+  if (isJwtIdToken) {
+    const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(token)}`);
+    if (!res.ok) {
+      throw new Error('Invalid Google ID token');
+    }
+    const data = (await res.json()) as {
+      aud?: string;
+      sub?: string;
+      email?: string;
+      email_verified?: string | boolean;
+      name?: string;
+    };
+
+    if (data.aud !== env.GOOGLE_CLIENT_ID) {
+      throw new Error('Google token audience mismatch');
+    }
+    if (!data.sub || !data.email || (data.email_verified !== 'true' && data.email_verified !== true)) {
+      throw new Error('Google account email is not verified');
+    }
+
+    return {
+      googleId: data.sub,
+      email: data.email.toLowerCase(),
+      name: data.name || data.email.split('@')[0],
+    };
+  }
+
+  // 2. Otherwise verify OAuth2 access_token audience + fetch user profile
+  const [tokenInfoRes, userInfoRes] = await Promise.all([
+    fetch(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${encodeURIComponent(token)}`),
+    fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  ]);
+
+  if (!tokenInfoRes.ok || !userInfoRes.ok) {
+    throw new Error('Invalid or expired Google access token');
+  }
+
+  const tokenInfo = (await tokenInfoRes.json()) as { aud?: string; azp?: string };
+  if (tokenInfo.aud !== env.GOOGLE_CLIENT_ID && tokenInfo.azp !== env.GOOGLE_CLIENT_ID) {
+    throw new Error('Google token audience mismatch');
+  }
+
+  const userInfo = (await userInfoRes.json()) as {
+    sub?: string;
+    email?: string;
+    email_verified?: boolean;
+    name?: string;
+  };
+
+  if (!userInfo.sub || !userInfo.email || !userInfo.email_verified) {
+    throw new Error('Google account email is not verified');
+  }
+
+  return {
+    googleId: userInfo.sub,
+    email: userInfo.email.toLowerCase(),
+    name: userInfo.name || userInfo.email.split('@')[0],
+  };
+};
+
+/**
+ * Find an existing user by email/googleId (linking Google if needed) or create a new Google user.
+ */
+export const findOrCreateGoogleUser = async (payload: GoogleUserPayload): Promise<IUser> => {
+  let user = await User.findOne({
+    $or: [{ googleId: payload.googleId }, { email: payload.email.toLowerCase() }],
+  });
+
+  if (user) {
+    if (!user.googleId) {
+      user.googleId = payload.googleId;
+      await user.save();
+      clearCache(`user:${user._id}`);
+    }
+    return user;
+  }
+
+  user = new User({
+    name: payload.name,
+    email: payload.email.toLowerCase(),
+    googleId: payload.googleId,
+    authProvider: 'google',
+  });
+
+  return await user.save();
+};
+
 /**
  * Verify a JWT token and return the decoded payload.
  * @param {string} token
