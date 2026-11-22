@@ -100,3 +100,67 @@ export const checkSession = async (): Promise<UserResponse | null> => {
     throw new Error(getErrorMessage(error));
   }
 };
+
+export const requestPasswordResetOtp = async (email: string): Promise<string> => {
+  try {
+    const response = await fetch(`${BASE_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const resData = await response.json();
+    if (!response.ok) {
+      throw new Error(resData.message || 'Failed to send verification code');
+    }
+    return resData.message;
+  } catch (error: unknown) {
+    throw new Error(getErrorMessage(error));
+  }
+};
+
+export const verifyPasswordResetOtp = async (email: string, otp: string): Promise<string> => {
+  try {
+    const response = await fetch(`${BASE_URL}/auth/verify-otp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, otp }),
+    });
+
+    const resData = await response.json();
+    if (!response.ok) {
+      throw new Error(resData.message || 'Invalid verification code');
+    }
+    return resData.message;
+  } catch (error: unknown) {
+    throw new Error(getErrorMessage(error));
+  }
+};
+
+export const resetPasswordWithOtp = async (
+  email: string,
+  otp: string,
+  newPassword: string
+): Promise<string> => {
+  try {
+    const response = await fetch(`${BASE_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, otp, newPassword }),
+    });
+
+    const resData = await response.json();
+    if (!response.ok) {
+      throw new Error(resData.message || 'Failed to reset password');
+    }
+    return resData.message;
+  } catch (error: unknown) {
+    throw new Error(getErrorMessage(error));
+  }
+};

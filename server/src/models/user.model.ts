@@ -6,6 +6,9 @@ export interface IUser extends Document {
   password?: string;
   googleId?: string;
   authProvider?: 'local' | 'google';
+  resetPasswordOtp?: string;
+  resetPasswordExpires?: Date;
+  resetOtpAttempts?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,6 +46,19 @@ const userSchema = new Schema<IUser>({
     type: String,
     enum: ['local', 'google'],
     default: 'local',
+  },
+  resetPasswordOtp: {
+    type: String,
+    select: false,
+  },
+  resetPasswordExpires: {
+    type: Date,
+    select: false,
+  },
+  resetOtpAttempts: {
+    type: Number,
+    default: 0,
+    select: false,
   },
 }, {
   timestamps: true,

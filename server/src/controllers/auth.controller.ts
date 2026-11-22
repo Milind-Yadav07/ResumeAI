@@ -4,9 +4,13 @@ import { ApiResponse } from '../utils/apiResponse.js';
 import { ApiError } from '../utils/apiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { env } from '../config/env.js';
+import { sendPasswordResetOtpEmail } from '../utils/email.js';
+import { clearCache } from '../utils/cache.js';
 
 // Named constants
 const COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+const MAX_OTP_ATTEMPTS = 5;
 
 export const signup = asyncHandler(async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
@@ -182,4 +186,104 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
     sameSite: cookieSameSite,
   });
   new ApiResponse(200, null, 'Logged out successfully.').send(res);
+});
+
+export const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  const user = await authService.findUserWithResetOtp(email);
+  if (!user) {
+    throw new ApiError(404, 'No account found with that email address.');
+  }
+
+  const otp = authService.generateOtp();
+  user.resetPasswordOtp = authService.hashOtp(otp);
+  user.resetPasswordExpires = new Date(Date.now() + OTP_EXPIRY_MS);
+  user.resetOtpAttempts = 0;
+  await user.save();
+
+  await sendPasswordResetOtpEmail(user.email, user.name, otp);
+
+  new ApiResponse(200, null, 'A 6-digit verification code has been sent to your email.').send(res);
+});
+
+export const verifyResetOtp = asyncHandler(async (req: Request, res: Response) => {
+  const { email, otp } = req.body;
+
+  const user = await authService.findUserWithResetOtp(email);
+  if (!user || !user.resetPasswordOtp || !user.resetPasswordExpires) {
+    throw new ApiError(400, 'No active reset code found. Please request a new OTP.');
+  }
+
+  if (user.resetPasswordExpires.getTime() < Date.now()) {
+    user.resetPasswordOtp = undefined;
+    user.resetPasswordExpires = undefined;
+    user.resetOtpAttempts = 0;
+    await user.save();
+    throw new ApiError(400, 'OTP has expired. Please request a new code.');
+  }
+
+  if ((user.resetOtpAttempts || 0) >= MAX_OTP_ATTEMPTS) {
+    user.resetPasswordOtp = undefined;
+    user.resetPasswordExpires = undefined;
+    user.resetOtpAttempts = 0;
+    await user.save();
+    throw new ApiError(429, 'Too many failed attempts. Please request a new OTP.');
+  }
+
+  const hashedInput = authService.hashOtp(otp);
+  if (hashedInput !== user.resetPasswordOtp) {
+    user.resetOtpAttempts = (user.resetOtpAttempts || 0) + 1;
+    await user.save();
+    const remaining = MAX_OTP_ATTEMPTS - user.resetOtpAttempts;
+    throw new ApiError(
+      400,
+      remaining > 0
+        ? `Invalid OTP code. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`
+        : 'Too many failed attempts. Please request a new OTP.'
+    );
+  }
+
+  new ApiResponse(200, null, 'OTP verified successfully.').send(res);
+});
+
+export const resetPassword = asyncHandler(async (req: Request, res: Response) => {
+  const { email, otp, newPassword } = req.body;
+
+  const user = await authService.findUserWithResetOtp(email);
+  if (!user || !user.resetPasswordOtp || !user.resetPasswordExpires) {
+    throw new ApiError(400, 'Reset session expired. Please request a new OTP.');
+  }
+
+  if (user.resetPasswordExpires.getTime() < Date.now()) {
+    user.resetPasswordOtp = undefined;
+    user.resetPasswordExpires = undefined;
+    user.resetOtpAttempts = 0;
+    await user.save();
+    throw new ApiError(400, 'OTP has expired. Please request a new code.');
+  }
+
+  if ((user.resetOtpAttempts || 0) >= MAX_OTP_ATTEMPTS) {
+    user.resetPasswordOtp = undefined;
+    user.resetPasswordExpires = undefined;
+    user.resetOtpAttempts = 0;
+    await user.save();
+    throw new ApiError(429, 'Too many failed attempts. Please request a new OTP.');
+  }
+
+  const hashedInput = authService.hashOtp(otp);
+  if (hashedInput !== user.resetPasswordOtp) {
+    user.resetOtpAttempts = (user.resetOtpAttempts || 0) + 1;
+    await user.save();
+    throw new ApiError(400, 'Invalid OTP code.');
+  }
+
+  user.password = await authService.hashPassword(newPassword);
+  user.resetPasswordOtp = undefined;
+  user.resetPasswordExpires = undefined;
+  user.resetOtpAttempts = 0;
+  await user.save();
+  clearCache(`user:${user._id}`);
+
+  new ApiResponse(200, null, 'Password has been reset successfully. You can now sign in.').send(res);
 });

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, Check } from 'lucide-react';
 import { GoogleAuthButton } from './GoogleAuthButton';
@@ -65,10 +66,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
             {/* Password Input */}
             <div className="space-y-1.5">
-                <div className="flex justify-between items-center">
-                    <label className="text-xs font-semibold text-slate-600 tracking-wide uppercase">Password</label>
-                    <a href="#forgot" className="text-xs font-medium text-blue-600 hover:underline">Forgot password?</a>
-                </div>
+                <label className="text-xs font-semibold text-slate-600 tracking-wide uppercase">Password</label>
                 <div className="relative group">
                     <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors duration-300">
                         <Lock size={18} />
@@ -90,7 +88,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                 </div>
             </div>
 
-            {/* Keep Signed In */}
+            {/* Keep Signed In & Forgot Password */}
             <div className="flex items-center justify-between py-1">
                 <label className="flex items-center gap-2.5 cursor-pointer group">
                     <div className="relative flex items-center">
@@ -109,6 +107,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                     </div>
                     <span className="text-sm font-medium text-slate-600 group-hover:text-slate-800 transition-colors">Keep me signed in</span>
                 </label>
+                <Link to="/forgot-password" className="text-xs font-medium text-blue-600 hover:underline">
+                    Forgot password?
+                </Link>
             </div>
 
             {/* Submit Button */}

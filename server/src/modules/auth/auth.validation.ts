@@ -14,3 +14,21 @@ export const loginSchema = z.object({
 export const googleAuthSchema = z.object({
   token: z.string().min(1, 'Google token is required')
 });
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Please provide a valid email address'),
+});
+
+export const verifyOtpSchema = z.object({
+  email: z.string().email('Please provide a valid email address'),
+  otp: z.string().regex(/^\d{6}$/, 'OTP must be a 6-digit code'),
+});
+
+export const resetPasswordSchema = z.object({
+  email: z.string().email('Please provide a valid email address'),
+  otp: z.string().regex(/^\d{6}$/, 'OTP must be a 6-digit code'),
+  newPassword: z
+    .string()
+    .min(8, 'Password must be at least 8 characters long')
+    .max(100, 'Password must not exceed 100 characters'),
+});

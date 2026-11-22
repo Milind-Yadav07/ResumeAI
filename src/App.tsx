@@ -10,6 +10,7 @@ const ResumeBuilder = lazy(() => import('@/features/builder/pages/ResumeBuilderP
 const ATSChecker = lazy(() => import('@/features/ats/pages/ATSCheckerPage'));
 const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage'));
 const SignUpPage = lazy(() => import('@/features/auth/pages/SignUpPage'));
+const ForgotPasswordPage = lazy(() => import('@/features/auth/pages/ForgotPasswordPage'));
 const MyResumes = lazy(() => import('@/features/dashboard/pages/MyResumesPage'));
 
 import { Toaster } from 'react-hot-toast';
@@ -32,6 +33,7 @@ function App() {
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<SignUpPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
                 {/* Protected Routes */}
                 <Route path="/select-format" element={<ProtectedRoute><FormatSelection /></ProtectedRoute>} />

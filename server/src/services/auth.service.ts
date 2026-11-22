@@ -1,6 +1,7 @@
 import User, { IUser } from '../models/user.model.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { env } from '../config/env.js';
 import mongoose from 'mongoose';
 import { clearCache } from '../utils/cache.js';
@@ -246,4 +247,27 @@ export const findOrCreateGoogleUser = async (payload: GoogleUserPayload): Promis
  */
 export const verifyToken = (token: string): jwt.JwtPayload | string => {
   return jwt.verify(token, env.JWT_SECRET);
+};
+
+/**
+ * Generate a cryptographically secure 6-digit OTP code.
+ */
+export const generateOtp = (): string => {
+  return crypto.randomInt(100000, 1000000).toString();
+};
+
+/**
+ * Hash a 6-digit OTP using SHA-256 before storing or comparing in MongoDB.
+ */
+export const hashOtp = (otp: string): string => {
+  return crypto.createHash('sha256').update(otp).digest('hex');
+};
+
+/**
+ * Find user by email including hidden password reset OTP fields.
+ */
+export const findUserWithResetOtp = async (email: string): Promise<IUser | null> => {
+  return await User.findOne({ email: email.toLowerCase() }).select(
+    '+resetPasswordOtp +resetPasswordExpires +resetOtpAttempts +password'
+  );
 };
