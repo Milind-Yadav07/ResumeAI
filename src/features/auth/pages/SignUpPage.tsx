@@ -1,27 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
 import { useSignUp } from '../hooks/useSignUp';
 import { SignUpForm } from '../components';
 
 const SignUpPage: React.FC = () => {
     const signUpState = useSignUp();
-    const { handleSubmit, navigate } = signUpState;
+    const { handleSubmit } = signUpState;
 
     return (
         <div className="min-h-screen w-screen bg-slate-50 flex overflow-hidden font-sans antialiased text-slate-800">
-            <motion.button
-                onClick={() => navigate('/')}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-                className="absolute top-6 left-6 z-50 flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-full text-sm font-medium text-slate-600 hover:text-slate-900 shadow-sm transition-all hover:shadow-md cursor-pointer"
-            >
-                <ArrowLeft size={16} />
-                <span>Back to Home</span>
-            </motion.button>
-
             <div className="w-full lg:w-[45%] xl:w-[40%] min-h-screen bg-white flex flex-col justify-center px-8 sm:px-16 lg:px-12 xl:px-16 py-12 relative z-10 shadow-2xl shadow-slate-200/50">
                 <div className="w-full max-w-md mx-auto">
                     <div className="mb-8 text-left">

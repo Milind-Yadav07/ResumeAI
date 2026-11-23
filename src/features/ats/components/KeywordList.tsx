@@ -1,5 +1,4 @@
 import React from 'react';
-import { Key } from 'lucide-react';
 
 interface KeywordListProps {
     foundKeywords: string[];
@@ -12,8 +11,7 @@ export const KeywordList: React.FC<KeywordListProps> = ({
 }) => {
     return (
         <div className="bg-white rounded-3xl p-10 shadow-[0_0_45px_rgba(0,0,0,0.12)] border border-slate-200 transition-transform duration-300 h-[550px] overflow-y-auto">
-            <div className="flex items-center gap-3 mb-8 font-bold text-[1.2rem] text-[#1a1a1a]">
-                <Key size={20} className="text-[#4361ee]" />
+            <div className="flex items-center justify-center text-center gap-3 mb-8 font-bold text-[1.2rem] text-[#1a1a1a]">
                 <span>Keyword Match</span>
             </div>
 

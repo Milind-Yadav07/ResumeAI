@@ -1,18 +1,59 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { checkATSScore } from '@/services/aiService';
 import { ATSAnalysisResult, UseATSCheckerReturn } from '@/types';
 import { extractTextFromPDF } from '@/utils/pdfParser';
 import toast from 'react-hot-toast';
 
+export const ATS_SESSION_STORAGE_KEY = 'resumeai_ats_session';
+
+interface StoredATSSession {
+    jd: string;
+    resumeText: string;
+    fileName: string;
+    analysis: ATSAnalysisResult | null;
+}
+
+const loadATSSession = (): StoredATSSession => {
+    try {
+        const raw = sessionStorage.getItem(ATS_SESSION_STORAGE_KEY);
+        if (!raw) {
+            return { jd: '', resumeText: '', fileName: '', analysis: null };
+        }
+        const parsed = JSON.parse(raw) as Partial<StoredATSSession>;
+        return {
+            jd: typeof parsed.jd === 'string' ? parsed.jd : '',
+            resumeText: typeof parsed.resumeText === 'string' ? parsed.resumeText : '',
+            fileName: typeof parsed.fileName === 'string' ? parsed.fileName : '',
+            analysis: parsed.analysis ?? null,
+        };
+    } catch {
+        return { jd: '', resumeText: '', fileName: '', analysis: null };
+    }
+};
+
 export const useATSChecker = (): UseATSCheckerReturn => {
-    const [jd, setJd] = useState('');
-    const [resumeText, setResumeText] = useState('');
-    const [fileName, setFileName] = useState('');
-    const [analysis, setAnalysis] = useState<ATSAnalysisResult | null>(null);
+    const initialSession = useRef<StoredATSSession | null>(null);
+    if (!initialSession.current) {
+        initialSession.current = loadATSSession();
+    }
+
+    const [jd, setJd] = useState(initialSession.current.jd);
+    const [resumeText, setResumeText] = useState(initialSession.current.resumeText);
+    const [fileName, setFileName] = useState(initialSession.current.fileName);
+    const [analysis, setAnalysis] = useState<ATSAnalysisResult | null>(initialSession.current.analysis);
     const [isLoading, setIsLoading] = useState(false);
     const [isParsing, setIsParsing] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const isLoadingRef = useRef(false);
+
+    useEffect(() => {
+        try {
+            const payload: StoredATSSession = { jd, resumeText, fileName, analysis };
+            sessionStorage.setItem(ATS_SESSION_STORAGE_KEY, JSON.stringify(payload));
+        } catch {
+            // Ignore storage quota or private-mode errors
+        }
+    }, [jd, resumeText, fileName, analysis]);
 
     const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -24,6 +65,7 @@ export const useATSChecker = (): UseATSCheckerReturn => {
         }
 
         setFileName(file.name);
+        setAnalysis(null);
         setIsParsing(true);
         try {
             const text = await extractTextFromPDF(file);
@@ -33,6 +75,7 @@ export const useATSChecker = (): UseATSCheckerReturn => {
             const errMsg = error instanceof Error ? error.message : "An error occurred while parsing the PDF.";
             toast.error(errMsg);
             setFileName('');
+            setResumeText('');
         } finally {
             setIsParsing(false);
         }
@@ -41,6 +84,7 @@ export const useATSChecker = (): UseATSCheckerReturn => {
     const removeFile = useCallback(() => {
         setFileName('');
         setResumeText('');
+        setAnalysis(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
     }, []);
 

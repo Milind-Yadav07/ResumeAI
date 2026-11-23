@@ -74,7 +74,7 @@ const ATSChecker: React.FC = () => {
                                     <AtsScoreCard matchPercentage={analysis.matchPercentage} matchLevel={analysis.matchLevel} matchDescription={analysis.matchDescription} />
                                     <KeywordList foundKeywords={analysis.foundKeywords} missingKeywords={analysis.missingKeywords} />
                                     <div className="bg-white rounded-3xl p-10 shadow-[0_0_45px_rgba(0,0,0,0.12)] border border-slate-200 h-[550px] overflow-y-auto">
-                                        <div className="flex items-center gap-3 mb-8 font-bold text-[1.2rem] text-[#1a1a1a]"><Lightbulb size={20} className="text-[#4361ee]" /><span>Quick Tips</span></div>
+                                        <div className="flex items-center justify-center text-center gap-3 mb-8 font-bold text-[1.2rem] text-[#1a1a1a]"><span>Quick Tips</span></div>
                                         <div className="flex flex-col gap-6">
                                             {analysis.quickTips?.map((tip) => (
                                                 <div key={tip.text} className="flex gap-4 items-start">

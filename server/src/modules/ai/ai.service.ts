@@ -1,21 +1,64 @@
-import { geminiModel } from '../../lib/gemini.js';
+import {
+  getGeminiModel,
+  SUMMARY_MODEL_CHAIN,
+  ATS_MODEL_CHAIN,
+} from '../../lib/gemini.js';
 import logger from '../../utils/logger.js';
 import { SUMMARY_PROMPT, ATS_PROMPT } from '../../constants/prompts.js';
 import { GenerateContentResult } from '@google/generative-ai';
 import { ApiError } from '../../utils/apiError.js';
 
-/** Timeout (ms) for all Gemini API calls — 30s to handle complex ATS prompts */
-const AI_TIMEOUT_MS = 30_000;
+/** Per-model timeout (ms) before failing over to the next model in the chain */
+const SUMMARY_ATTEMPT_TIMEOUT_MS = 15_000;
+const ATS_ATTEMPT_TIMEOUT_MS = 25_000;
 
 /**
- * Wraps a promise with a timeout. If the promise does not resolve within
- * `ms` milliseconds, it rejects with an ApiError.
+ * Wraps a promise with a timeout and cleans up the timer upon settlement.
  */
 const withTimeout = <T>(promise: Promise<T>, ms: number): Promise<T> => {
-  const timeout = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new ApiError(504, `AI request timed out after ${ms / 1000}s. Please try again.`)), ms)
-  );
-  return Promise.race([promise, timeout]);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new ApiError(504, `AI request timed out after ${ms / 1000}s. Please try again.`)),
+      ms
+    );
+  });
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
+};
+
+/**
+ * Executes a Gemini prompt across an ordered model failover chain.
+ * If the primary model times out or returns an upstream capacity/quota error,
+ * automatically falls back to the next model in the chain.
+ */
+const generateWithFallback = async (
+  prompt: string,
+  modelChain: readonly string[],
+  timeoutMs: number
+): Promise<GenerateContentResult> => {
+  let lastError: unknown;
+
+  for (let i = 0; i < modelChain.length; i++) {
+    const modelName = modelChain[i];
+    try {
+      const model = getGeminiModel(modelName);
+      return await withTimeout(model.generateContent(prompt), timeoutMs);
+    } catch (err) {
+      lastError = err;
+      const nextModel = modelChain[i + 1];
+      if (nextModel) {
+        logger.warn(
+          `Gemini model "${modelName}" failed (${err instanceof Error ? err.message : 'unknown error'}). Failing over to "${nextModel}"...`
+        );
+      } else {
+        logger.error(`All Gemini models in chain failed. Last model "${modelName}" error:`, err);
+      }
+    }
+  }
+
+  return handleGeminiError(lastError);
 };
 
 /**
@@ -58,27 +101,33 @@ const handleGeminiError = (err: unknown): never => {
  */
 export const getAISummary = async (currentText: string): Promise<string> => {
   const prompt = SUMMARY_PROMPT(currentText);
-  try {
-    const result: GenerateContentResult = await withTimeout(geminiModel.generateContent(prompt), AI_TIMEOUT_MS);
-    return result.response.text();
-  } catch (err) {
-    logger.error('Gemini getAISummary error:', err);
-    return handleGeminiError(err);
-  }
+  const result = await generateWithFallback(prompt, SUMMARY_MODEL_CHAIN, SUMMARY_ATTEMPT_TIMEOUT_MS);
+  return result.response.text();
 };
 
 /**
- * Stream an improved resume summary using Gemini AI.
+ * Stream an improved resume summary using Gemini AI with model failover.
  */
 export const getAISummaryStream = async (currentText: string) => {
   const prompt = SUMMARY_PROMPT(currentText);
-  try {
-    const result = await geminiModel.generateContentStream(prompt);
-    return result.stream;
-  } catch (err) {
-    logger.error('Gemini getAISummaryStream error:', err);
-    return handleGeminiError(err);
+  let lastError: unknown;
+
+  for (let i = 0; i < SUMMARY_MODEL_CHAIN.length; i++) {
+    const modelName = SUMMARY_MODEL_CHAIN[i];
+    try {
+      const model = getGeminiModel(modelName);
+      const result = await model.generateContentStream(prompt);
+      return result.stream;
+    } catch (err) {
+      lastError = err;
+      const nextModel = SUMMARY_MODEL_CHAIN[i + 1];
+      if (nextModel) {
+        logger.warn(`Gemini stream model "${modelName}" failed. Failing over to "${nextModel}"...`);
+      }
+    }
   }
+
+  return handleGeminiError(lastError);
 };
 
 /**
@@ -89,14 +138,8 @@ export const getAISummaryStream = async (currentText: string) => {
  */
 export const checkATSScore = async (jd: string, resumeText: string): Promise<Record<string, unknown>> => {
   const prompt = ATS_PROMPT(jd, resumeText);
-  let text: string;
-  try {
-    const result: GenerateContentResult = await withTimeout(geminiModel.generateContent(prompt), AI_TIMEOUT_MS);
-    text = result.response.text();
-  } catch (err) {
-    logger.error('Gemini checkATSScore error:', err);
-    return handleGeminiError(err);
-  }
+  const result = await generateWithFallback(prompt, ATS_MODEL_CHAIN, ATS_ATTEMPT_TIMEOUT_MS);
+  const text = result.response.text();
 
   // Strip markdown code fences, then extract the outermost JSON object
   const stripped = text.replace(/```(?:json)?\s*/gi, '').replace(/```/g, '').trim();

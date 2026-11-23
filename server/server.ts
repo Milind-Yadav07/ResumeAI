@@ -89,7 +89,16 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/resumes', resumeRoutes);
 app.use('/api/v1/ai', aiRoutes);
 
-// 4. Global Error Handling Middleware
+// 4. JSON 404 Handler for unknown routes
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Requested endpoint not found.',
+    data: null,
+  });
+});
+
+// 5. Global Error Handling Middleware
 app.use(errorHandler);
 
 // Start Server

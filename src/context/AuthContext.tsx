@@ -50,6 +50,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch {
       // Even if the server call fails, clear the local state
     }
+    try {
+      sessionStorage.removeItem('resumeai_ats_session');
+    } catch {
+      // Ignore storage errors
+    }
     setUser(null);
   }, []);
 

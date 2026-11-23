@@ -1,5 +1,6 @@
 import { API_BASE_URL } from '../config';
 import { ATSAnalysisResult } from '../types';
+import { getErrorMessage } from '../utils/errorUtils';
 
 const BASE_URL = API_BASE_URL;
 
@@ -23,7 +24,7 @@ export const getAISummary = async (currentText: string): Promise<string> => {
     }
     return resData.data.summary;
   } catch (error: unknown) {
-    throw new Error(error instanceof Error ? error.message : 'Failed to connect to AI summary service.');
+    throw new Error(getErrorMessage(error));
   }
 };
 
@@ -50,7 +51,7 @@ export const checkATSScore = async (jd: string, resumeText: string): Promise<ATS
     }
     return resData.data as ATSAnalysisResult;
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Failed to connect to AI service.';
+    const message = getErrorMessage(error);
     return {
       matchPercentage: 0,
       matchLevel: 'Error',

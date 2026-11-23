@@ -1,10 +1,16 @@
 import React from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 
 const Navbar: React.FC = () => {
     const { isAuthenticated, logout, user } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        navigate('/', { replace: true });
+        await logout();
+    };
 
     return (
         <motion.nav
@@ -69,7 +75,7 @@ const Navbar: React.FC = () => {
                                 Hi, {user?.name}
                             </span>
                             <button
-                                onClick={logout}
+                                onClick={handleLogout}
                                 className="px-5 py-2.5 text-sm font-semibold rounded-full border border-slate-900 bg-slate-900 text-white hover:bg-white hover:text-slate-900 transition-all duration-300 shadow-[0_2px_10px_rgba(15,23,42,0.1)] hover:shadow-[0_4px_15px_rgba(15,23,42,0.2)] cursor-pointer"
                             >
                                 Logout

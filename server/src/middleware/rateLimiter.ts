@@ -3,6 +3,7 @@ import rateLimit from 'express-rate-limit';
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10, // max 10 requests per window
+  skip: (req) => req.path === '/me' || req.path === '/logout',
   message: {
     success: false,
     message: 'Too many attempts, please try again later'
