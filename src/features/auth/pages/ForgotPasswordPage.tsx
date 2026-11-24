@@ -221,9 +221,6 @@ const ForgotPasswordPage: React.FC = () => {
                                 ) : (
                                     <>
                                         <span>Send 6-Digit OTP</span>
-                                        <span className="transition-transform duration-300 group-hover:translate-x-1">
-                                            →
-                                        </span>
                                     </>
                                 )}
                             </button>

@@ -63,7 +63,7 @@ const ATSChecker: React.FC = () => {
 
                     <div className="flex justify-center mt-4">
                         <button onClick={handleCheck} className="bg-[#4361ee] text-white px-12 py-5 rounded-xl text-[1.125rem] font-semibold cursor-pointer flex items-center gap-3 transition-all duration-300 shadow-[0_10px_25px_rgba(67,97,238,0.2)] hover:translate-y-[-2px]" disabled={isLoading}>
-                            {isLoading ? <><Loader2 size={20} className="animate-spin" />Analyzing...</> : <>Analyze Resume →</>}
+                            {isLoading ? <><Loader2 size={20} className="animate-spin" />Analyzing...</> : <>Analyze Resume</>}
                         </button>
                     </div>
 

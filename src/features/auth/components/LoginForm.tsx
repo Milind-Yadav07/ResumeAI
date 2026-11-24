@@ -123,7 +123,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                 ) : (
                     <>
                         <span>Sign In</span>
-                        <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
                     </>
                 )}
             </button>
